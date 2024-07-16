@@ -3,6 +3,8 @@ const app = require('../app');
 const db = require('../db/connection');
 const seed = require('../db/seeds/seed');
 const {topicData, articleData, userData, commentData} = require('../db/data/test-data/index');
+const endpoints = require('../endpoints.json');
+
 
 beforeEach(() => seed({topicData, articleData, userData, commentData}))
 
@@ -23,4 +25,14 @@ describe('/api/topics', () =>{
             });
         })
     })
+})
+describe('/api', () => {
+  test('should respond with a 200 status and the contents of endpoints.json', () => {
+    return request(app)
+    .get('/api')
+    .expect(200)
+    .then(({body}) => {
+      expect(body.endpoints).toEqual(endpoints)
+    })
+  })
 })
