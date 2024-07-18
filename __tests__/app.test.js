@@ -5,8 +5,6 @@ const seed = require('../db/seeds/seed');
 const {topicData, articleData, userData, commentData} = require('../db/data/test-data/index');
 const endpoints = require('../endpoints.json');
 const {response} = require('express');
-const path = require('node:path');
-const fs = require('fs');
 const { title } = require('node:process');
 
 beforeEach(() => seed({topicData, articleData, userData, commentData}))
@@ -95,7 +93,7 @@ describe('/api/articles', () => {
           expect(article).not.toHaveProperty('body');
       })
     })
-  })
+  });
   test('should respond with 200 status and all articles should be sorted by date in descending order', () => {
     return request(app)
     .get('/api/articles')
@@ -105,4 +103,59 @@ describe('/api/articles', () => {
       expect(articles).toBeSortedBy('created_at', {descending: true});
     })
   })
-})
+});
+describe('/api/articles/:article_id/comments',() => {
+  test('should respond with 200 status and all comments', () => {
+    return request(app)
+    .get('/api/articles/1/comment')
+    .expect(200)
+    .then((response) => {
+      expect(response.body.comments.length).toBeGreaterThan(0);
+      const comments = response.body.comments;
+      comments.forEach((comment) => {
+        expect(comment).toEqual({
+        comment_id: expect.any(Number),
+        votes: expect.any(Number),
+        created_at: expect.any(String),
+        author: expect.any(String),
+        body: expect.any(String),
+        article_id: expect.any(Number)
+        })
+      })
+    })
+  })
+  test('respond with 200 status and all comments should be sorted by date in descending order', () => {
+    return request(app)
+    .get('/api/articles/1/comment')
+    .expect(200)
+    .then((response) => {
+      const comments = response.body.comments
+      expect(comments).toBeSortedBy('created_at', {descending: true});
+    })
+  });
+  test('should respond with 200 status and return an empty array if article exists but there are no comments', () => {
+    return request(app)
+    .get('/api/articles/2/comment')
+    .expect(200)
+    .then((response) => {
+      const comments = response.body.comments
+      expect(comments).toEqual([]);
+    })
+  });
+  test('respond with 404 status if article does not exist but is valid', () => {
+    return request(app)
+    .get('/api/articles/33/comment')
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toEqual('Sorry article_id 33 Does Not Exist');
+    })
+  });
+  test('respond with 400 status if invalid article ID', () => {
+    return request(app)
+    .get('/api/articles/banana/comment')
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('400 Bad request');
+    })
+  })
+});
