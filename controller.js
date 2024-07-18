@@ -1,5 +1,6 @@
+const topics = require('./db/data/test-data/topics');
 const endpoints = require('./endpoints.json')
-const {fetchTopics, fetchArticlesByID} = require('./model');
+const {fetchTopics, fetchArticlesByID, fetchAllArticles} = require('./model');
 
 function getTopics(req, res){
     fetchTopics()
@@ -23,4 +24,11 @@ function getArticlesById(req, res, next){
         next(err);
     })
 };
-module.exports = {getTopics,getAllEndpoints, getArticlesById}
+
+function getAllArticles(req, res, next){
+    fetchAllArticles()
+    .then((articles) => {
+        return res.status(200).send({articles})
+    })
+}
+module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles}
