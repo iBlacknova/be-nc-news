@@ -5,7 +5,9 @@ const seed = require('../db/seeds/seed');
 const {topicData, articleData, userData, commentData} = require('../db/data/test-data/index');
 const endpoints = require('../endpoints.json');
 const {response} = require('express');
-
+const path = require('node:path');
+const fs = require('fs');
+const { title } = require('node:process');
 
 beforeEach(() => seed({topicData, articleData, userData, commentData}))
 
@@ -70,5 +72,37 @@ describe('/api/articles/:article_id', () => {
     .then(({body}) => {
       expect(body.msg).toBe('No article found under article_id 30')
     })
-  })  
+  })
 });
+describe('/api/articles', () => {
+  test('should respond with 200 status and return all articles without the body', () => {
+    return request(app)
+    .get('/api/articles')
+    .expect(200)
+    .then((response) => {
+      expect(response.body).toHaveProperty('articles');
+      expect(Array.isArray(response.body.articles)).toBe(true);
+      response.body.articles.forEach((article) => {
+        console.log(article)
+        expect(article).toHaveProperty('author');
+          expect(article).toHaveProperty('title');
+          expect(article).toHaveProperty('article_id');
+          expect(article).toHaveProperty('topic');
+          expect(article).toHaveProperty('created_at');
+          expect(article).toHaveProperty('votes');
+          expect(article).toHaveProperty('article_img_url');
+          expect(article).toHaveProperty('comment_count');
+          expect(article).not.toHaveProperty('body');
+      })
+    })
+  })
+  test('should respond with 200 status and all articles should be sorted by date in descending order', () => {
+    return request(app)
+    .get('/api/articles')
+    .expect(200)
+    .then((response) => {
+      const articles = response.body.articles
+      expect(articles).toBeSortedBy('created_at', {descending: true});
+    })
+  })
+})
