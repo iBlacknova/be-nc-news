@@ -11,7 +11,7 @@ beforeEach(() => seed({topicData, articleData, userData, commentData}))
 
 afterAll(() => db.end())
 
-describe('/api/topics', () =>{
+describe('GET /api/topics', () =>{
     test('should respond with a 200 status code and returns all topics', () => {
         return request(app)
         .get('/api/topics')
@@ -27,7 +27,7 @@ describe('/api/topics', () =>{
         })
     })
 });
-describe('/api', () => {
+describe('GET /api', () => {
   test('should respond with a 200 status and the contents of endpoints.json', () => {
     return request(app)
     .get('/api')
@@ -37,7 +37,7 @@ describe('/api', () => {
     })
   });
 });
-describe('/api/articles/:article_id', () => {
+describe('GET /api/articles/:article_id', () => {
   test('should respond with a 200 status and return an article by id', () => {
     return request(app)
     .get('/api/articles/1')
@@ -72,7 +72,7 @@ describe('/api/articles/:article_id', () => {
     })
   })
 });
-describe('/api/articles', () => {
+describe('GET /api/articles', () => {
   test('should respond with 200 status and return all articles without the body', () => {
     return request(app)
     .get('/api/articles')
@@ -104,10 +104,10 @@ describe('/api/articles', () => {
     })
   })
 });
-describe('/api/articles/:article_id/comments',() => {
+describe('GET /api/articles/:article_id/comments',() => {
   test('should respond with 200 status and all comments', () => {
     return request(app)
-    .get('/api/articles/1/comment')
+    .get('/api/articles/1/comments')
     .expect(200)
     .then((response) => {
       expect(response.body.comments.length).toBeGreaterThan(0);
@@ -126,7 +126,7 @@ describe('/api/articles/:article_id/comments',() => {
   })
   test('respond with 200 status and all comments should be sorted by date in descending order', () => {
     return request(app)
-    .get('/api/articles/1/comment')
+    .get('/api/articles/1/comments')
     .expect(200)
     .then((response) => {
       const comments = response.body.comments
@@ -135,7 +135,7 @@ describe('/api/articles/:article_id/comments',() => {
   });
   test('should respond with 200 status and return an empty array if article exists but there are no comments', () => {
     return request(app)
-    .get('/api/articles/2/comment')
+    .get('/api/articles/2/comments')
     .expect(200)
     .then((response) => {
       const comments = response.body.comments
@@ -144,7 +144,7 @@ describe('/api/articles/:article_id/comments',() => {
   });
   test('respond with 404 status if article does not exist but is valid', () => {
     return request(app)
-    .get('/api/articles/33/comment')
+    .get('/api/articles/33/comments')
     .expect(404)
     .then(({body}) => {
       expect(body.msg).toEqual('Sorry article_id 33 Does Not Exist');
@@ -152,10 +152,92 @@ describe('/api/articles/:article_id/comments',() => {
   });
   test('respond with 400 status if invalid article ID', () => {
     return request(app)
-    .get('/api/articles/banana/comment')
+    .get('/api/articles/banana/comments')
     .expect(400)
     .then(({body}) => {
       expect(body.msg).toBe('400 Bad request');
     })
   })
 });
+describe('POST /api/articles/:article_id/comments', () => {
+  test('respond with 201 status, create new comment and return that new comment', () => {
+    const newComment = {
+      username: 'butter_bridge',
+      body: 'New random comment',
+    }
+    return request(app)
+    .post('/api/articles/1/comments')
+    .send(newComment)
+    .expect(201)
+    .then((response) => {
+      const comments = response.body
+      expect(comments).toMatchObject({
+        comment_id: expect.any(Number),
+        votes: expect.any(Number),
+        created_at: expect.any(String),
+        author: 'butter_bridge',
+        body: 'New random comment',
+        article_id: 1
+        })
+    })
+  })
+  test('returns 400 status if article ID is not valid', () => {
+    const newComment = {
+      username: 'butter_bridge',
+      body: 'New random comment'
+    }
+    return request(app)
+    .post('/api/articles/banana/comments')
+    .send(newComment)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('400 Bad request')
+    })
+  });
+  test('returns 404 status if username key is invalid', () => {
+    const newComment = {
+      username: '',
+      body: 'New random comment'
+    }
+    return request(app)
+    .post('/api/articles/1/comments')
+    .send(newComment)
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe('Username is required')
+    })
+  });
+  test('returns 404 status if article ID is valid but does not exist', () => {
+    const newComment = {
+      username: 'butter_bridge',
+      body: 'New random comment'
+    }
+    return request(app)
+    .post('/api/articles/999/comments')
+    .send(newComment)
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe('Sorry article_id 999 Does Not Exist')
+    })
+
+  });
+  test('returns 400 status if body is invalid', () => {
+    const newComment = {
+      username: 'butter_bridge'
+    }
+    return request(app)
+    .post('/api/articles/1/comments')
+    .send(newComment)
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('Body is required')
+    })
+
+  });
+})
+//revamp above test to check for right comment structure(define the ones we know such as author and body)
+
+//400 - if article id is not a number(nana)
+//404 - if article id is valid(999) but doesn't exist
+//400 - if body key is missing-bad req
+//404 - if username is invalid only users in users.js are authorised to post comments, handled by sql error handler - will need to update current sql error handler to do something with new error-2nd if statement

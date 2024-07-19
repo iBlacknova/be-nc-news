@@ -68,4 +68,14 @@ function checkArticleExists(article_id){
     })
 }
 
-module.exports = {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists}
+function insertComment(article_id, username, comment){
+    return db.query(`
+        INSERT into comments (article_id, author, body)
+        VALUES 
+            ($1, $2, $3)
+        RETURNING *`,[article_id, username, comment])
+    .then((result) => {
+        return result.rows[0];
+    })
+};
+module.exports = {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists, insertComment}

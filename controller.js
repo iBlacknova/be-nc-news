@@ -1,6 +1,6 @@
 const topics = require('./db/data/test-data/topics');
 const endpoints = require('./endpoints.json')
-const {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists} = require('./model');
+const {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists, insertComment} = require('./model');
 
 function getTopics(req, res){
     fetchTopics()
@@ -8,11 +8,11 @@ function getTopics(req, res){
         return res.status(200).send(topics);
     })
 
-}
+};
 
 function getAllEndpoints(req, res){
     res.status(200).send({endpoints});
-}
+};
 
 function getArticlesById(req, res, next){
     const {article_id} = req.params;
@@ -45,4 +45,21 @@ function getAllComments(req, res, next){
         next(err);
     })
 };
-module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments}
+
+function postComment(req, res, next){
+    const {username, body} = req.body;
+    const {article_id} = req.params;
+    checkArticleExists(article_id)
+    .then(() => {
+        console.log('in here!')
+        return insertComment(article_id, username, body);
+    })
+    .then((comment) => {
+        res.status(201).send(comment);
+    })
+    .catch((err) => {
+        console.log(err)
+        next(err);
+    })
+}
+module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment}
