@@ -1,6 +1,7 @@
+const { patch } = require('./app');
 const topics = require('./db/data/test-data/topics');
 const endpoints = require('./endpoints.json')
-const {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists, insertComment} = require('./model');
+const {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists, insertComment, updateArticleById} = require('./model');
 
 function getTopics(req, res){
     fetchTopics()
@@ -62,4 +63,22 @@ function postComment(req, res, next){
         next(err);
     })
 }
-module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment}
+function patchArticleById(req, res, next){
+    const {article_id} = req.params;
+    const {inc_votes} = req.body;
+    if (typeof inc_votes !== 'number') {
+        return res.status(400).send({ msg: 'Invalid request body' });
+    }
+    checkArticleExists(article_id)
+    .then(() => {
+        return updateArticleById(article_id, inc_votes);
+    })
+    .then((updatedArticle) => {
+        res.status(200).send({article: updatedArticle});
+    })
+    .catch((err) => {
+        console.log(err)
+        next(err);
+    })
+}
+module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment, patchArticleById}

@@ -1,6 +1,6 @@
 const express = require('express');
 const {endpoints} = require('./endpoints.json');
-const {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment} = require('./controller');
+const {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment, patchArticleById} = require('./controller');
 const app = express();
 app.use(express.json());
 
@@ -14,7 +14,9 @@ app.get('/api/articles', getAllArticles);
 
 app.get('/api/articles/:article_id/comments', getAllComments);
 
-app.post('/api/articles/:article_id/comments', postComment)
+app.post('/api/articles/:article_id/comments', postComment);
+
+app.patch('/api/articles/:article_id', patchArticleById);
 
 app.use((err, req, res, next) => {
     if (err.code === '22P02'){
@@ -49,4 +51,7 @@ handleServerErrors = (err, req, res, next) => {
     console.log(err);
     res.status(500).send({msg: "Internal Server Error"})
 };
+
+app.use(handleServerErrors);
+
 module.exports = app

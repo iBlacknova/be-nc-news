@@ -234,10 +234,62 @@ describe('POST /api/articles/:article_id/comments', () => {
     })
 
   });
-})
-//revamp above test to check for right comment structure(define the ones we know such as author and body)
+});
+describe('PATCH /api/articles/:article_id', () =>  {
+  test('should return status 200 and increase vote by number of votes', () => {
+    return request(app)
+    .patch('/api/articles/1')
+    .send({ inc_votes: 1 })
+    .expect(200)
+    .then(({body}) => {
+      expect(body.article.votes).toBe(101)
+    })
+  });
+  test('should return status 200 and decrease vote by number of votes', () => {
+    return request(app)
+    .patch('/api/articles/1')
+    .send({ inc_votes: -1 })
+    .expect(200)
+    .then(({body}) => {
+      expect(body.article.votes).toBe(99)
+    })
+  });
+  test('should return status 400 if votes are missing', () => {
+    return request(app)
+    .patch('/api/articles/1')
+    .send({})
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('Invalid request body')
+    })
+  });
+  test('should return 400 status for invalid votes patch request', () => {
+    return request(app)
+    .patch('/api/articles/1')
+    .send({ inc_votes: 'banana' })
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('Invalid request body')
+    })
+  });
+  test('should return 400 status if invalid article ID format', () => {
+    return request(app)
+    .patch('/api/articles/banana')
+    .send({ inc_votes: 1 })
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('400 Bad request')
+    })
+  });
+  test('should return 404 status if article ID is valid but does not exist', () => {
+    return request(app)
+    .patch('/api/articles/999')
+    .send({ inc_votes: 1 })
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe('Sorry article_id 999 Does Not Exist')
+    })
+  });
+});
 
-//400 - if article id is not a number(nana)
-//404 - if article id is valid(999) but doesn't exist
-//400 - if body key is missing-bad req
-//404 - if username is invalid only users in users.js are authorised to post comments, handled by sql error handler - will need to update current sql error handler to do something with new error-2nd if statement
+//return 404 for article id that does not exist
