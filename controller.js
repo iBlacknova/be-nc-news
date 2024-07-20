@@ -1,7 +1,7 @@
 const { patch } = require('./app');
 const topics = require('./db/data/test-data/topics');
 const endpoints = require('./endpoints.json')
-const {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists, insertComment, updateArticleById} = require('./model');
+const {fetchTopics, fetchArticlesByID, fetchAllArticles, fetchAllComments, checkArticleExists, insertComment, updateArticleById, checkCommentExists, deleteCommentById} = require('./model');
 
 function getTopics(req, res){
     fetchTopics()
@@ -59,7 +59,6 @@ function postComment(req, res, next){
         res.status(201).send(comment);
     })
     .catch((err) => {
-        console.log(err)
         next(err);
     })
 }
@@ -77,8 +76,22 @@ function patchArticleById(req, res, next){
         res.status(200).send({article: updatedArticle});
     })
     .catch((err) => {
-        console.log(err)
         next(err);
     })
 }
-module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment, patchArticleById}
+
+function removeCommentById(req, res, next){
+    const {comment_id} = req.params
+    checkCommentExists(comment_id)
+    .then(() => {
+        return deleteCommentById(comment_id);
+    })
+    .then(() => {
+        res.status(204).send();
+    })
+    .catch((err) => {
+        next(err);
+    })
+}
+
+module.exports = {getTopics,getAllEndpoints, getArticlesById, getAllArticles, getAllComments, postComment, patchArticleById, removeCommentById}

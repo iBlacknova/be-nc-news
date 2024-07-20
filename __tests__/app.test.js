@@ -291,5 +291,26 @@ describe('PATCH /api/articles/:article_id', () =>  {
     })
   });
 });
-
-//return 404 for article id that does not exist
+describe('DELETE /api/comments/:comment_id', () => {
+  test('should return 204 status and successfully delete comment returning no content', () => {
+    return request(app)
+    .delete('/api/comments/1')
+    .expect(204)
+    });
+  test('should return 400 status if comment_id is invalid', () => {
+    return request(app)
+    .delete('/api/comments/banana')
+    .expect(400)
+    .then(({body}) => {
+      expect(body.msg).toBe('400 Bad request')
+    })
+  });
+  test('should return 404 status if comment does not exist in database', () => {
+    return request(app)
+    .delete('/api/comments/999')
+    .expect(404)
+    .then(({body}) => {
+      expect(body.msg).toBe('Sorry comment_id 999 Does Not Exist')
+    })
+  });
+});
