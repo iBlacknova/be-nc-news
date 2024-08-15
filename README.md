@@ -5,12 +5,13 @@ Hosted version of API is available here: https://nc-news-api-0bcj.onrender.com
 This API provides the backend service to my NC News site
 
 Minimum requirements:
-Node = v22.1.0
-Postgres = v16
+
+- Node = v22.1.0
+- Postgres = v16
 
 Instructions:
 
-1. To clone this repo, press the "code" button and copy the http link. In your terminal, navigate to the folder you would like to clone the repo in and do "git clone 'http link'":
+1. To clone this repo, press the "code" button and copy the http link. In your terminal, navigate to the folder you would like to clone the repo in and do "git clone 'insert http link here'":
 
 2. To install the dependencies initiate "npm install" in your terminal after opening the project
 
